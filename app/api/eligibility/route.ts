@@ -1,0 +1,1 @@
+// isme checking wala kaam hoga ki bnda kaun kaun si scheme k lie eligible h aur kaunsi k lie nhi hai 
