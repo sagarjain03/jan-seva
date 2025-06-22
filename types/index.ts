@@ -1,8 +1,9 @@
 export interface UserType {
   id: string;
-  name: string;
+  fullname: string;
   email: string;
-  phone: string;
+  phonenumber: string;
+  password: string;
   type: "user" | "admin";
 }
 

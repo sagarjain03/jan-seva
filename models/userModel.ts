@@ -6,9 +6,10 @@ type IUser = UserType & Document;
 
 const userSchema = new Schema<IUser>(
   {
-    name: { type: String, required: true },
+    fullname: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true },
+    phonenumber: { type: String, required: true },
+    password: { type: String, required: true },
     type: { type: String, enum: ["user", "admin"], default: "user" },
   },
   { timestamps: true }
