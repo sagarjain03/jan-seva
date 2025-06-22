@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { User, MapPin, Briefcase, IndianRupee, Calendar, Users, CheckCircle, MicIcon, Phone } from "lucide-react"
 import type { FormData } from "@/types"
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 
 interface FormPageProps {
   formData: FormData
@@ -15,6 +16,8 @@ interface FormPageProps {
 }
 
 export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormPageProps) {
+  const startDictation = useSpeechToText();
+
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
@@ -25,6 +28,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
       <Card className="border-green-100 shadow-sm">
         <CardContent className="p-6 space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
+            {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-green-600" />
@@ -38,12 +42,21 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onChange={(e) => onUpdateFormData("name", e.target.value)}
                   className="border-green-200 focus:border-green-400"
                 />
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("name", text))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
+            {/* Age */}
             <div className="space-y-2">
               <Label htmlFor="age" className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-green-600" />
@@ -57,19 +70,31 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onChange={(e) => onUpdateFormData("age", e.target.value)}
                   className="border-green-200 focus:border-green-400"
                 />
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("age", text))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
+            {/* Gender */}
             <div className="space-y-2">
               <Label className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-green-600" />
                 <span>Gender</span>
               </Label>
               <div className="flex space-x-2">
-                <Select value={formData.gender} onValueChange={(value) => onUpdateFormData("gender", value)}>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) => onUpdateFormData("gender", value)}
+                >
                   <SelectTrigger className="border-green-200 focus:border-green-400">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -79,19 +104,31 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("gender", text.toLowerCase()))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
+            {/* Income */}
             <div className="space-y-2">
               <Label className="flex items-center space-x-2">
                 <IndianRupee className="w-4 h-4 text-green-600" />
                 <span>Annual Income</span>
               </Label>
               <div className="flex space-x-2">
-                <Select value={formData.income} onValueChange={(value) => onUpdateFormData("income", value)}>
+                <Select
+                  value={formData.income}
+                  onValueChange={(value) => onUpdateFormData("income", value)}
+                >
                   <SelectTrigger className="border-green-200 focus:border-green-400">
                     <SelectValue placeholder="Select income range" />
                   </SelectTrigger>
@@ -102,19 +139,31 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                     <SelectItem value="above-10-lakh">Above ₹10 Lakh</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("income", text.toLowerCase()))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
+            {/* Caste */}
             <div className="space-y-2">
               <Label className="flex items-center space-x-2">
                 <Users className="w-4 h-4 text-green-600" />
                 <span>Category</span>
               </Label>
               <div className="flex space-x-2">
-                <Select value={formData.caste} onValueChange={(value) => onUpdateFormData("caste", value)}>
+                <Select
+                  value={formData.caste}
+                  onValueChange={(value) => onUpdateFormData("caste", value)}
+                >
                   <SelectTrigger className="border-green-200 focus:border-green-400">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -125,12 +174,21 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                     <SelectItem value="st">ST</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("caste", text.toLowerCase()))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
+            {/* Location */}
             <div className="space-y-2">
               <Label htmlFor="location" className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-green-600" />
@@ -144,12 +202,21 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onChange={(e) => onUpdateFormData("location", e.target.value)}
                   className="border-green-200 focus:border-green-400"
                 />
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("location", text))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
+            {/* Occupation */}
             <div className="space-y-2">
               <Label htmlFor="occupation" className="flex items-center space-x-2">
                 <Briefcase className="w-4 h-4 text-green-600" />
@@ -163,12 +230,21 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onChange={(e) => onUpdateFormData("occupation", e.target.value)}
                   className="border-green-200 focus:border-green-400"
                 />
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("occupation", text))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
+            {/* Phone */}
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-green-600" />
@@ -182,7 +258,15 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onChange={(e) => onUpdateFormData("phone", e.target.value)}
                   className="border-green-200 focus:border-green-400"
                 />
-                <Button variant="ghost" size="icon" className="text-green-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-600"
+                  type="button"
+                  onClick={() =>
+                    startDictation((text) => onUpdateFormData("phone", text))
+                  }
+                >
                   <MicIcon className="w-4 h-4" />
                 </Button>
               </div>

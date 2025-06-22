@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Mic, Search, Wheat, GraduationCap, Heart, Home } from "lucide-react"
+import VoiceInput from "./VoiceInput"
 
 interface HomePageProps {
   onNavigate: (path: string) => void
@@ -33,6 +34,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           className="w-24 h-24 rounded-full bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl transition-all duration-200"
         >
           <Mic className="w-8 h-8 text-white" />
+          
         </Button>
         <p className="text-sm text-gray-600">Tap to speak with our voice assistant</p>
       </div>
