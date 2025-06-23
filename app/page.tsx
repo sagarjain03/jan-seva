@@ -1,53 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { WifiOff } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Heart, Mic, Search, Wheat, GraduationCap, Home, ArrowRight, Users, Shield, Globe } from "lucide-react"
 
-// Components
-import Header from "@/components/Header"
-import AuthPage from "@/components/AuthPage"
-import HomePage from "@/components/HomePage"
-import FormPage from "@/components/FormPage"
-import ResultsPage from "@/components/ResultsPage"
-import ApplicationPage from "@/components/ApplicationPage"
-import StatusPage from "@/components/StatusPage"
-import AdminDashboard from "@/components/AdminDashboard"
-
-// Types and Data
-import type { UserType, FormData, Scheme, Application, ViewType, UserTypeOption, Language } from "@/types"
-import { mockSchemes, mockApplications } from "@/data/mockData"
-
-export default function JanSevaApp() {
+export default function LandingPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  // State Management
-  const [currentView, setCurrentView] = useState<ViewType>("auth")
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null)
-  const [language, setLanguage] = useState<Language>("en")
-  const [isOnline, setIsOnline] = useState(true)
-
-  // Form States
-  const [formData, setFormData] = useState<FormData>({
-    age: "",
-    gender: "",
-    income: "",
-    caste: "",
-    location: "",
-    occupation: "",
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-  })
-  const [currentFormStep, setCurrentFormStep] = useState(1)
-  const [selectedScheme, setSelectedScheme] = useState<Scheme | null>(null)
-  const [eligibleSchemes, setEligibleSchemes] = useState<Scheme[]>([])
-
-  // Admin States
-  const [schemes, setSchemes] = useState<Scheme[]>(mockSchemes)
-  const [applications, setApplications] = useState<Application[]>(mockApplications)
 
   useEffect(() => {
     // Check if user is already logged in
@@ -65,144 +26,6 @@ export default function JanSevaApp() {
     }
   }, [router])
 
-  // PWA and Offline Support
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
-
-    window.addEventListener("online", handleOnline)
-    window.addEventListener("offline", handleOffline)
-
-    // Load offline data
-    const offlineData = localStorage.getItem("janseva-offline-data")
-    if (offlineData) {
-      const data = JSON.parse(offlineData)
-      if (data.formData) setFormData(data.formData)
-    }
-
-    return () => {
-      window.removeEventListener("online", handleOnline)
-      window.removeEventListener("offline", handleOffline)
-    }
-  }, [])
-
-  // Save data offline
-  useEffect(() => {
-    if (!isOnline) {
-      localStorage.setItem("janseva-offline-data", JSON.stringify({ formData }))
-    }
-  }, [formData, isOnline])
-
-  // Authentication Functions
-  const handleLogin = async (email: string, password: string, type: UserTypeOption) => {
-    // Mock authentication - in real app, this would be an API call
-    const user = {
-      id: "user1",
-      name: type === "admin" ? "Admin User" : "John Doe",
-      email,
-      phone: "+91 9876543210",
-      type,
-    }
-
-    // Store user in localStorage for persistence
-    localStorage.setItem("janseva-user", JSON.stringify(user))
-
-    // Redirect based on user type
-    if (type === "admin") {
-      router.push("/admin")
-    } else {
-      router.push("/dashboard")
-    }
-  }
-
-  const handleLogout = () => {
-    setCurrentUser(null)
-    setCurrentView("auth")
-  }
-
-  // Form Functions
-  const updateFormData = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const handleEligibilityCheck = () => {
-    const eligible = schemes.filter((scheme) => {
-      if (
-        formData.occupation.toLowerCase().includes("farm") ||
-        formData.occupation.toLowerCase().includes("agriculture")
-      ) {
-        return scheme.eligibility.includes("farmer") || scheme.eligibility.includes("agriculture")
-      }
-      if (formData.income === "below-2-lakh") {
-        return scheme.eligibility.includes("low-income") || scheme.eligibility.includes("below-poverty")
-      }
-      return true
-    })
-    setEligibleSchemes(eligible)
-    setCurrentView("results")
-  }
-
-  const handleSchemeApplication = (scheme: Scheme) => {
-    setSelectedScheme(scheme)
-    setCurrentView("application")
-    setCurrentFormStep(1)
-  }
-
-  const submitApplication = () => {
-    const newApplication: Application = {
-      id: `APP${Date.now()}`,
-      userId: currentUser?.id || "",
-      schemeId: selectedScheme?.id || "",
-      schemeName: selectedScheme?.name || "",
-      status: "pending",
-      submittedAt: new Date().toISOString().split("T")[0],
-      lastUpdated: new Date().toISOString().split("T")[0],
-      formData,
-    }
-
-    setApplications((prev) => [...prev, newApplication])
-
-    // Mock notification
-    alert(
-      `Application submitted successfully! Your application ID is ${newApplication.id}. You will receive SMS/Email confirmation shortly.`,
-    )
-
-    setCurrentView("home")
-  }
-
-  // Admin Functions
-  const addNewScheme = (newScheme: Partial<Scheme>) => {
-    if (newScheme.name && newScheme.description) {
-      const scheme: Scheme = {
-        id: Date.now().toString(),
-        name: newScheme.name,
-        description: newScheme.description,
-        category: newScheme.category || "General",
-        eligibility: newScheme.eligibility || [],
-        documents: newScheme.documents || [],
-        benefits: newScheme.benefits || "",
-        applicationDeadline: newScheme.applicationDeadline || "",
-        isActive: true,
-      }
-      setSchemes((prev) => [...prev, scheme])
-    }
-  }
-
-  const toggleSchemeStatus = (schemeId: string) => {
-    setSchemes((prev) =>
-      prev.map((scheme) => (scheme.id === schemeId ? { ...scheme, isActive: !scheme.isActive } : scheme)),
-    )
-  }
-
-  // Application Form Navigation
-  const handleNextStep = () => {
-    setCurrentFormStep(Math.min(3, currentFormStep + 1))
-  }
-
-  const handlePrevStep = () => {
-    setCurrentFormStep(Math.max(1, currentFormStep - 1))
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center">
@@ -216,85 +39,188 @@ export default function JanSevaApp() {
     )
   }
 
-  // Main Render
-  if (currentView === "auth") {
-    return <AuthPage onLogin={handleLogin} />
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Header
-        language={language}
-        setLanguage={setLanguage}
-        isOnline={isOnline}
-        currentUser={currentUser}
-        onLogout={handleLogout}
-      />
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-green-100">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center">
+              <Heart className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-green-800">JanSeva</h1>
+              <p className="text-xs text-green-600">जन सेवा</p>
+            </div>
+          </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {!isOnline && (
-          <Alert className="mb-6 border-yellow-200 bg-yellow-50">
-            <WifiOff className="h-4 w-4" />
-            <AlertDescription>
-              You're currently offline. Your data will be saved and submitted when you're back online.
-            </AlertDescription>
-          </Alert>
-        )}
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" onClick={() => router.push("/login")}>
+              Login
+            </Button>
+            <Button className="bg-green-600 hover:bg-green-700" onClick={() => router.push("/register")}>
+              Register
+            </Button>
+          </div>
+        </div>
+      </header>
 
-        {currentView === "home" && <HomePage onNavigate={setCurrentView} />}
+      {/* Hero Section */}
+      <main className="max-w-6xl mx-auto px-4 py-16">
+        <div className="text-center space-y-12">
+          {/* Main Hero */}
+          <div className="space-y-8">
+            <div className="flex justify-center mb-8">
+              <div className="w-32 h-32 bg-gradient-to-br from-orange-100 to-green-100 rounded-full flex items-center justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-orange-200 to-green-200 rounded-full flex items-center justify-center">
+                  <Home className="w-10 h-10 text-green-700" />
+                </div>
+              </div>
+            </div>
 
-        {currentView === "form" && (
-          <FormPage formData={formData} onUpdateFormData={updateFormData} onSubmit={handleEligibilityCheck} />
-        )}
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-800 leading-tight">
+                Get the Right
+                <span className="text-green-600"> Government Schemes</span>
+                <br />
+                for You
+              </h1>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Discover government schemes and benefits you're eligible for. Simple, fast, and in your language. Apply
+                online and track your applications seamlessly.
+              </p>
+            </div>
 
-        {currentView === "results" && (
-          <ResultsPage
-            eligibleSchemes={eligibleSchemes}
-            onApplyScheme={handleSchemeApplication}
-            onNavigate={setCurrentView}
-          />
-        )}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 px-8 py-4 text-lg"
+                onClick={() => router.push("/register")}
+              >
+                Get Started
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-green-200 text-green-700 hover:bg-green-50 px-8 py-4 text-lg"
+                onClick={() => router.push("/login")}
+              >
+                <Search className="w-5 h-5 mr-2" />
+                Check Status
+              </Button>
+            </div>
+          </div>
 
-        {currentView === "application" && (
-          <ApplicationPage
-            selectedScheme={selectedScheme}
-            formData={formData}
-            currentFormStep={currentFormStep}
-            onUpdateFormData={updateFormData}
-            onNextStep={handleNextStep}
-            onPrevStep={handlePrevStep}
-            onSubmit={submitApplication}
-          />
-        )}
+          {/* Voice Assistant Section */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <Button
+                size="lg"
+                className="w-24 h-24 rounded-full bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <Mic className="w-8 h-8 text-white" />
+              </Button>
+              <p className="text-lg text-gray-600">
+                <strong>Voice Assistant Available</strong>
+                <br />
+                <span className="text-sm">Speak in Hindi or English to find schemes</span>
+              </p>
+            </div>
+          </div>
 
-        {currentView === "status" && <StatusPage applications={applications} />}
+          {/* Features Section */}
+          <div className="grid md:grid-cols-3 gap-8 mt-20">
+            <Card className="border-green-100 hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-green-600" />
+                </div>
+                <CardTitle className="text-green-800">Easy Application</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-center">
+                  Simple step-by-step process to apply for government schemes. No complex paperwork or long queues.
+                </CardDescription>
+              </CardContent>
+            </Card>
 
-        {currentView === "admin" && (
-          <AdminDashboard
-            schemes={schemes}
-            applications={applications}
-            onAddScheme={addNewScheme}
-            onToggleSchemeStatus={toggleSchemeStatus}
-            onNavigate={setCurrentView}
-          />
-        )}
-      </main>
+            <Card className="border-green-100 hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-blue-600" />
+                </div>
+                <CardTitle className="text-blue-800">Secure & Trusted</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-center">
+                  Government-backed platform ensuring your data security and privacy. Official Digital Bharat
+                  initiative.
+                </CardDescription>
+              </CardContent>
+            </Card>
 
-      {/* Bottom Section */}
-      {currentView !== "admin" && (
-        <div className="bg-white border-t border-green-100 mt-16">
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-              <div className="text-center md:text-right">
-                <p className="text-sm text-gray-600">
-                  <span className="font-semibold text-orange-600">Digital Bharat</span> Initiative
-                </p>
-                <p className="text-xs text-gray-500">Empowering Citizens Through Technology</p>
+            <Card className="border-green-100 hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Globe className="w-8 h-8 text-orange-600" />
+                </div>
+                <CardTitle className="text-orange-800">Multi-Language</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-center">
+                  Available in Hindi and English. Voice support for easy interaction in your preferred language.
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Scheme Categories */}
+          <div className="mt-20">
+            <h2 className="text-3xl font-bold text-gray-800 mb-8">Popular Scheme Categories</h2>
+            <div className="flex justify-center space-x-12 opacity-80">
+              <div className="text-center">
+                <Wheat className="w-12 h-12 text-green-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Agriculture</p>
+              </div>
+              <div className="text-center">
+                <GraduationCap className="w-12 h-12 text-blue-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Education</p>
+              </div>
+              <div className="text-center">
+                <Heart className="w-12 h-12 text-red-500 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Healthcare</p>
+              </div>
+              <div className="text-center">
+                <Home className="w-12 h-12 text-orange-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Housing</p>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-green-100 mt-20">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center">
+                <Heart className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-green-800">JanSeva</h3>
+                <p className="text-xs text-green-600">जन सेवा</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600">
+              <span className="font-semibold text-orange-600">Digital Bharat</span> Initiative
+            </p>
+            <p className="text-xs text-gray-500">Empowering Citizens Through Technology</p>
+            <p className="text-xs text-gray-400">© 2024 Government of India. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
