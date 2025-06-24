@@ -1,45 +1,45 @@
-import {connectDB} from "@/db/dbConfig";
+import { connectDB } from "@/db/dbConfig";
 import User from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
-import {DecodedToken} from "@/types/index";
+import { DecodedToken } from "@/types/index";
 connectDB();
 
-export async function POST(request: NextRequest){
+export async function POST(request: NextRequest) {
     try {
         if (request.headers.get("content-type") !== "application/json") {
             return NextResponse.json({ error: "Invalid Content-Type header, expected application/json" }, { status: 400 });
         }
         const reqBody = await request.json();
-        const {email, password} = reqBody;
+        const { email, password } = reqBody;
 
         //check if user exists
-        const user = await User.findOne({email});
+        const user = await User.findOne({ email });
         console.log("User found:", user);
 
-        if(!user){
-            return NextResponse.json({error: "Invalid credentials"}, {status: 400});
+        if (!user) {
+            return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
         }
 
         //check if password is correct
         const isMatch = await bcryptjs.compare(password, user.password);
         console.log("Password match:", isMatch);
 
-        if(!isMatch){
-            return NextResponse.json({error: "Invalid credentials"}, {status: 400});
+        if (!isMatch) {
+            return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
         }
 
         // JWT_SECRET check
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {
-            return NextResponse.json({error: "JWT secret not set"}, {status: 500});
+            return NextResponse.json({ error: "JWT secret not set" }, { status: 500 });
         }
 
-        const tokendata : DecodedToken= {
-          id: user._id.toString(),
-          username: user.fullname,
-          email: user.email,
+        const tokendata: DecodedToken = {
+            id: user._id.toString(),
+            username: user.fullname,
+            email: user.email,
         };
 
         const token = jwt.sign(tokendata, jwtSecret, { expiresIn: "1d" });
@@ -52,7 +52,10 @@ export async function POST(request: NextRequest){
             JSON.stringify({
                 message: "Login successful",
                 success: true,
-                user: userObj
+                user: {
+                    ...userObj,
+                    type: user.type // Ensure type is included
+                }
             }),
             {
                 status: 200,
@@ -66,6 +69,6 @@ export async function POST(request: NextRequest){
 
     } catch (error: any) {
         console.error("Login error:", error);
-        return NextResponse.json({error: "Something went wrong"}, {status: 500});
+        return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
     }
 }

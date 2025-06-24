@@ -1,22 +1,76 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { User, MapPin, Briefcase, IndianRupee, Calendar, Users, CheckCircle, MicIcon, Phone } from "lucide-react"
-import type { FormData } from "@/types"
-import { useSpeechToText } from "@/hooks/useSpeechToText";
+import { useSpeechToText } from "@/hooks/useSpeechToText"
+import type { FormData, Scheme } from "@/types"
 
-interface FormPageProps {
-  formData: FormData
-  onUpdateFormData: (field: keyof FormData, value: string) => void
-  onSubmit: () => void
-}
+export default function FormPage() {
+  const router = useRouter()
+  const [formData, setFormData] = useState<FormData>({
+    name,
+    age: "",
+    gender: "",
+    income: "",
+    caste: "",
+    location: "",
+    occupation: "",
+    phone: ""
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const startDictation = useSpeechToText()
 
-export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormPageProps) {
-  const startDictation = useSpeechToText();
+  const onUpdateFormData = (field: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleSubmit = async () => {
+    if (!formData.age || !formData.gender || !formData.income) {
+      setError("Please fill in all required fields")
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetch("/api/eligibility", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          age: formData.age,
+          gender: formData.gender,
+          income: formData.income,
+          caste: formData.caste,
+          location: formData.location,
+          occupation: formData.occupation
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to check eligibility")
+      }
+
+      const eligibleSchemes: Scheme[] = await response.json()
+      
+      // Navigate to results page with data
+      router.push(`/results?data=${encodeURIComponent(JSON.stringify(eligibleSchemes))}`)
+    } catch (err) {
+      console.error("Eligibility check error:", err)
+      setError(err instanceof Error ? err.message : "An unknown error occurred")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -24,6 +78,12 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
         <h2 className="text-2xl font-bold text-gray-800">Tell us about yourself</h2>
         <p className="text-gray-600">We'll find the best schemes for your situation</p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+          {error}
+        </div>
+      )}
 
       <Card className="border-green-100 shadow-sm">
         <CardContent className="p-6 space-y-6">
@@ -41,6 +101,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   value={formData.name}
                   onChange={(e) => onUpdateFormData("name", e.target.value)}
                   className="border-green-200 focus:border-green-400"
+                  disabled={loading}
                 />
                 <Button
                   variant="ghost"
@@ -50,6 +111,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("name", text))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -60,7 +122,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
             <div className="space-y-2">
               <Label htmlFor="age" className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-green-600" />
-                <span>Age</span>
+                <span>Age *</span>
               </Label>
               <div className="flex space-x-2">
                 <Input
@@ -69,6 +131,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   value={formData.age}
                   onChange={(e) => onUpdateFormData("age", e.target.value)}
                   className="border-green-200 focus:border-green-400"
+                  disabled={loading}
                 />
                 <Button
                   variant="ghost"
@@ -78,6 +141,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("age", text))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -88,12 +152,13 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
             <div className="space-y-2">
               <Label className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-green-600" />
-                <span>Gender</span>
+                <span>Gender *</span>
               </Label>
               <div className="flex space-x-2">
                 <Select
                   value={formData.gender}
                   onValueChange={(value) => onUpdateFormData("gender", value)}
+                  disabled={loading}
                 >
                   <SelectTrigger className="border-green-200 focus:border-green-400">
                     <SelectValue placeholder="Select gender" />
@@ -112,6 +177,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("gender", text.toLowerCase()))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -122,12 +188,13 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
             <div className="space-y-2">
               <Label className="flex items-center space-x-2">
                 <IndianRupee className="w-4 h-4 text-green-600" />
-                <span>Annual Income</span>
+                <span>Annual Income *</span>
               </Label>
               <div className="flex space-x-2">
                 <Select
                   value={formData.income}
                   onValueChange={(value) => onUpdateFormData("income", value)}
+                  disabled={loading}
                 >
                   <SelectTrigger className="border-green-200 focus:border-green-400">
                     <SelectValue placeholder="Select income range" />
@@ -147,6 +214,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("income", text.toLowerCase()))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -163,6 +231,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                 <Select
                   value={formData.caste}
                   onValueChange={(value) => onUpdateFormData("caste", value)}
+                  disabled={loading}
                 >
                   <SelectTrigger className="border-green-200 focus:border-green-400">
                     <SelectValue placeholder="Select category" />
@@ -182,6 +251,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("caste", text.toLowerCase()))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -201,6 +271,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   value={formData.location}
                   onChange={(e) => onUpdateFormData("location", e.target.value)}
                   className="border-green-200 focus:border-green-400"
+                  disabled={loading}
                 />
                 <Button
                   variant="ghost"
@@ -210,6 +281,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("location", text))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -229,6 +301,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   value={formData.occupation}
                   onChange={(e) => onUpdateFormData("occupation", e.target.value)}
                   className="border-green-200 focus:border-green-400"
+                  disabled={loading}
                 />
                 <Button
                   variant="ghost"
@@ -238,6 +311,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("occupation", text))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -257,6 +331,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   value={formData.phone}
                   onChange={(e) => onUpdateFormData("phone", e.target.value)}
                   className="border-green-200 focus:border-green-400"
+                  disabled={loading}
                 />
                 <Button
                   variant="ghost"
@@ -266,6 +341,7 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
                   onClick={() =>
                     startDictation((text) => onUpdateFormData("phone", text))
                   }
+                  disabled={loading}
                 >
                   <MicIcon className="w-4 h-4" />
                 </Button>
@@ -275,12 +351,20 @@ export default function FormPage({ formData, onUpdateFormData, onSubmit }: FormP
 
           <div className="flex justify-center pt-4">
             <Button
-              onClick={onSubmit}
+              onClick={handleSubmit}
               className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-8 py-3"
-              disabled={!formData.age || !formData.gender || !formData.income}
+              disabled={loading || !formData.age || !formData.gender || !formData.income}
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Check Eligibility
+              {loading ? (
+                <>
+                  <span className="animate-pulse">Checking Eligibility</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Check Eligibility
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
