@@ -20,6 +20,9 @@ import type { UserType, FormData, Scheme, Application, ViewType, UserTypeOption,
 import { mockSchemes, mockApplications } from "@/data/mockData"
 
 export default function JanSevaApp() {
+
+  
+
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   // State Management
