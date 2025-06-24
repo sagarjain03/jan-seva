@@ -25,7 +25,7 @@ JanSeva is a digital platform to help citizens discover, apply for, and track go
 1. **Clone the repository:**
    ```sh
    git clone https://github.com/sagarjain03/jan-seva
-   cd the-janseva-app
+   cd janseva
    ```
 
 2. **Install dependencies:**
