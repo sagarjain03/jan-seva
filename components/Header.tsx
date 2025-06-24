@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Heart, Globe, Wifi, WifiOff, LogOut } from "lucide-react"
 import type { UserType, Language } from "@/types"
+import AuthPage from "@/components/AuthPage"
+
 
 interface HeaderProps {
   language: Language
